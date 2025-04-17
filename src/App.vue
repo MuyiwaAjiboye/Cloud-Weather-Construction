@@ -1,9 +1,7 @@
 <template>
   <div class="app">
     <Navigation />
-    <main class="main-content">
-      <router-view></router-view>
-    </main>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -13,20 +11,16 @@ import Navigation from './components/Navigation.vue'
 
 <style>
 :root {
-  --primary-blue: #60a5fa; /* Light blue for weather */
-  --secondary-blue: #93c5fd; /* Lighter blue */
-  --accent-yellow: #fcd34d; /* Sunny weather */
-  --bg-white: #f8fafc; /* Background */
-  --text-gray: #475569; /* Text color */
+  --primary-blue: #60a5fa;
+  --secondary-blue: #93c5fd;
+  --accent-yellow: #fcd34d;
+  --bg-white: #f8fafc;
+  --text-gray: #475569;
 }
 
 .app {
   min-height: 100vh;
   background-color: var(--bg-white);
   color: var(--text-gray);
-}
-
-.main-content {
-  padding: 2rem;
 }
 </style>

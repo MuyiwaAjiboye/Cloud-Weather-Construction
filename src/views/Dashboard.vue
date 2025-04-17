@@ -1,22 +1,11 @@
 <template>
-    <div class="dashboard-container">
-        <ProjectList
-            :projects="projects"
-            @select-project="handleProjectSelect"
-        />
-
-        <div class="main-content">
-            <div v-if="selectedProject" class="widget-grid">
-                <WeatherWidget
-                    :location="selectedProject.location"
-                    @weather-alert="handleWeatherAlert"
-                />
-                <AirQualityWidget
-                    :location="selectedProject.location"
-                    @air-quality-alert="handleAirQualityAlert"
-                />
-                <MapWidget :location="selectedProject.location" />
-            </div>
-        </div>
-    </div>
+  <div class="dashboard">
+    <h1>Dashboard</h1>
+  </div>
 </template>
+
+<style scoped>
+.dashboard {
+  padding: 20px;
+}
+</style>
