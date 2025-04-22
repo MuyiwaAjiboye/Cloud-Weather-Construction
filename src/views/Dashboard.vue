@@ -16,6 +16,10 @@
         <MapWidget :location="selectedLocation" />
       </div>
     </div>
+    <!-- Full-width map -->
+    <div class="map-container">
+      <MapWidget :location="selectedLocation" />
+    </div>
   </div>
 </template>
 
@@ -61,6 +65,11 @@ const handleProjectSelect = (project) => {
 }
 
 .fixed-height-widget {
-  height: 300px; /* Adjust this value as needed */
+  height: 300px;
+}
+
+.map-container {
+  height: 400px;
+  width: 100%;
 }
 </style>
