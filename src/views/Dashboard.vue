@@ -3,15 +3,30 @@
     <h1 class="page-title">Weather Dashboard</h1>
 
     <div class="grid-wrapper">
-      <WeatherWidget />
-      <AirQualityWidget />
+      <SelectProject @project-selected="handleProjectSelect" />
+      <WeatherWidget :location="selectedLocation" />
+      <AirQualityWidget :location="selectedLocation" />
+      <MapWidget :location="selectedLocation" />
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import WeatherWidget from '../components/WeatherWidget.vue'
 import AirQualityWidget from '../components/AirQualityWidget.vue'
+import MapWidget from '../components/MapWidget.vue'
+import SelectProject from '../components/SelectProject.vue'
+
+const selectedLocation = ref(null)
+
+const handleProjectSelect = (project) => {
+  if (project) {
+    selectedLocation.value = project.coordinates
+  } else {
+    selectedLocation.value = null
+  }
+}
 </script>
 
 <style scoped>
