@@ -3,10 +3,18 @@
     <h1 class="page-title">Weather Dashboard</h1>
 
     <div class="grid-wrapper">
-      <SelectProject @project-selected="handleProjectSelect" />
-      <WeatherWidget :location="selectedLocation" />
-      <AirQualityWidget :location="selectedLocation" />
-      <MapWidget :location="selectedLocation" />
+      <div class="select-project-container">
+        <SelectProject @project-selected="handleProjectSelect" />
+      </div>
+      <div class="fixed-height-widget">
+        <WeatherWidget :location="selectedLocation" />
+      </div>
+      <div class="fixed-height-widget">
+        <AirQualityWidget :location="selectedLocation" />
+      </div>
+      <div class="fixed-height-widget">
+        <MapWidget :location="selectedLocation" />
+      </div>
     </div>
   </div>
 </template>
@@ -45,5 +53,14 @@ const handleProjectSelect = (project) => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
+  align-items: start; /* This is important */
+}
+
+.select-project-container {
+  height: fit-content;
+}
+
+.fixed-height-widget {
+  height: 300px; /* Adjust this value as needed */
 }
 </style>
