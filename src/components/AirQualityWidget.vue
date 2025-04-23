@@ -1,29 +1,47 @@
 <template>
-  <div class="air-quality-widget widget">
+  <div class="widget">
     <div class="widget-header">
       <h2 class="widget-title">Air Quality</h2>
     </div>
     <div class="widget-body">
-      <div class="aqi-content">
-        <div class="aqi-main">
-          <div
-            class="aqi-percentage"
-            :class="{ 'text-success': aqiValue > 20, 'text-danger': aqiValue <= 20 }"
-          >
-            {{ aqiValue }}%
-          </div>
-          <div class="aqi-status">{{ aqiStatus }}</div>
+      <!-- No Project Selected -->
+      <div v-if="!location" class="air-quality-info">Select a project to view air quality</div>
+
+      <!-- Loading -->
+      <div v-else-if="loading" class="air-quality-info">Loading...</div>
+
+      <!-- Air Quality Data -->
+      <div v-else class="air-quality-info">
+        <!-- Big AQI Number -->
+        <div
+          class="aqi-main"
+          :class="{
+            'text-success': isGoodAirQuality,
+            'text-danger': !isGoodAirQuality,
+          }"
+        >
+          {{ airQualityText }}
         </div>
 
-        <div class="aqi-stats">
+        <!-- Status and Recommendation -->
+        <div class="aqi-details">
           <div class="stat-item">
             <span class="stat-label">Status</span>
-            <span class="stat-value">Safe for Operations</span>
+            <span
+              class="stat-value"
+              :class="{
+                'text-success': isGoodAirQuality,
+                'text-danger': !isGoodAirQuality,
+              }"
+            >
+              {{ isGoodAirQuality ? 'Safe for Operations' : 'Operation Not Advised' }}
+            </span>
           </div>
-          <div class="stat-item">
-            <span class="stat-label">PM2.5</span>
-            <span class="stat-value">35 µg/m³</span>
-          </div>
+        </div>
+
+        <!-- Recommendation Message -->
+        <div class="recommendation" v-if="recommendationMessage">
+          {{ recommendationMessage }}
         </div>
       </div>
     </div>
@@ -31,10 +49,79 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { getAirQuality } from '../services/airQualityService'
 
-const aqiValue = ref(75) // Example value
-const aqiStatus = ref('Good')
+// Props
+const props = defineProps({
+  location: {
+    type: Object,
+    default: null,
+  },
+})
+
+// Data
+const loading = ref(false)
+const airQualityData = ref(null)
+
+// Get air quality data using our service
+const fetchAirQuality = async () => {
+  if (!props.location) return
+
+  loading.value = true
+
+  try {
+    const data = await getAirQuality(props.location.lat, props.location.lng)
+    airQualityData.value = data.list[0]
+  } catch (error) {
+    console.error('Error fetching air quality:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Convert AQI number to text
+const airQualityText = computed(() => {
+  if (!airQualityData.value) return 'Unknown'
+
+  const aqi = airQualityData.value.main.aqi
+  const levels = {
+    1: 'Good',
+    2: 'Fair',
+    3: 'Moderate',
+    4: 'Poor',
+    5: 'Very Poor',
+  }
+  return levels[aqi] || 'Unknown'
+})
+
+// Check if air quality is good (1) or fair (2)
+const isGoodAirQuality = computed(() => {
+  if (!airQualityData.value) return false
+  return airQualityData.value.main.aqi <= 2
+})
+
+// Get recommendation based on air quality
+const recommendationMessage = computed(() => {
+  if (!airQualityData.value) return ''
+
+  return isGoodAirQuality.value
+    ? 'Safe to carry out work with earth moving equipment'
+    : 'Earth moving equipment operations not recommended due to air quality'
+})
+
+// Watch for location changes and update data
+watch(
+  () => props.location,
+  () => {
+    if (props.location) {
+      fetchAirQuality()
+    } else {
+      airQualityData.value = null
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>
@@ -42,6 +129,7 @@ const aqiStatus = ref('Good')
   background: white;
   border-radius: 0.5rem;
   box-shadow: 0 2px 6px 0 rgba(67, 89, 113, 0.12);
+  height: 100%;
 }
 
 .widget-header {
@@ -58,37 +146,20 @@ const aqiStatus = ref('Good')
   padding: 1.5rem;
 }
 
-.aqi-content {
+.air-quality-info {
+  text-align: center;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
 .aqi-main {
-  text-align: center;
-}
-
-.aqi-percentage {
   font-size: 2.5rem;
   font-weight: 600;
 }
 
-.text-success {
-  color: #28c76f;
-}
-
-.text-danger {
-  color: #ea5455;
-}
-
-.aqi-status {
-  color: #6e6b7b;
-  margin-top: 0.5rem;
-}
-
-.aqi-stats {
+.aqi-details {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
@@ -105,6 +176,20 @@ const aqiStatus = ref('Good')
 
 .stat-value {
   font-weight: 500;
-  color: var(--text-primary);
+}
+
+.recommendation {
+  font-size: 0.875rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background-color: #f3f4f6;
+}
+
+.text-success {
+  color: #10b981;
+}
+
+.text-danger {
+  color: #ef4444;
 }
 </style>

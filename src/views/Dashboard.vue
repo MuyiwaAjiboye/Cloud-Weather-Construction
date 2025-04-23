@@ -7,7 +7,7 @@
         <SelectProject @project-selected="handleProjectSelect" />
       </div>
       <div class="fixed-height-widget">
-        <WeatherWidget :location="selectedLocation" />
+        <WeatherWidget :location="selectedLocation" :project-name="selectedProject?.name" />
       </div>
       <div class="fixed-height-widget">
         <AirQualityWidget :location="selectedLocation" />
