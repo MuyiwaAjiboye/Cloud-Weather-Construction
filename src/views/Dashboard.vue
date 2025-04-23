@@ -12,12 +12,10 @@
       <div class="fixed-height-widget">
         <AirQualityWidget :location="selectedLocation" />
       </div>
-      <div class="fixed-height-widget">
-        <MapWidget :location="selectedLocation" />
-      </div>
     </div>
-    <!-- Full-width map -->
-    <div class="map-container">
+
+    <!-- Full-width map below -->
+    <div class="full-width-map">
       <MapWidget :location="selectedLocation" />
     </div>
   </div>
@@ -57,7 +55,8 @@ const handleProjectSelect = (project) => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  align-items: start; /* This is important */
+  align-items: start;
+  margin-bottom: 1.5rem;
 }
 
 .select-project-container {
@@ -68,8 +67,10 @@ const handleProjectSelect = (project) => {
   height: 300px;
 }
 
-.map-container {
+.full-width-map {
   height: 400px;
-  width: 100%;
+  margin-top: 1.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
 </style>

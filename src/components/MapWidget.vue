@@ -4,20 +4,16 @@
       <h2 class="widget-title">Project Locations</h2>
     </div>
     <div class="widget-body">
-      <div id="map" class="map-container"></div>
+      <div id="map" ref="mapContainer" class="map-container"></div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, ref } from 'vue'
 import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
 
-// Replace with your Mapbox access token
-mapboxgl.accessToken =
-  'pk.eyJ1IjoiZG90dW4wOCIsImEiOiJjbTlzcnV0czUwMnpqMmtyM3R2dG85bXAwIn0.o8UJe0rZIbfocIVr6Q02jw'
-
+const mapContainer = ref(null)
 const props = defineProps({
   location: {
     type: Object,
@@ -25,70 +21,67 @@ const props = defineProps({
   },
 })
 
-// Default center on Newcastle
-const defaultCenter = [-1.6177, 54.9783]
-
-let map = null
-
 onMounted(() => {
-  map = new mapboxgl.Map({
+  // Initialize map
+  const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/light-v11', // Clean, light style
-    center: defaultCenter,
+    style: 'mapbox://styles/mapbox/light-v10',
+    center: [-1.6177, 54.9783], // Newcastle coordinates
     zoom: 13,
+    accessToken:
+      'pk.eyJ1IjoiZG90dW4wOCIsImEiOiJjbTlzcnV0czUwMnpqMmtyM3R2dG85bXAwIn0.o8UJe0rZIbfocIVr6Q02jw',
   })
 
-  // Add zoom and rotation controls
-  map.addControl(new mapboxgl.NavigationControl(), 'top-right')
+  // Add navigation controls
+  map.addControl(new mapboxgl.NavigationControl())
 
-  // Add all project markers
-  const projects = [
-    {
-      name: 'NESST',
-      coordinates: [54.976414676146824, -1.6066366875533187],
-    },
-    {
-      name: 'CHASE',
-      coordinates: [54.97919158255862, -1.6064863942439456],
-    },
-    {
-      name: 'HMRC',
-      coordinates: [54.97419179801806, -1.6113036886189427],
-    },
-    {
-      name: 'St James Park',
-      coordinates: [54.97470900180268, -1.6204767255123336],
-    },
-  ]
+  // Add markers when map loads
+  map.on('load', () => {
+    const projects = [
+      {
+        name: 'NESST',
+        coordinates: [-1.6066366875533187, 54.976414676146824],
+      },
+      {
+        name: 'CHASE',
+        coordinates: [-1.6064863942439456, 54.97919158255862],
+      },
+      {
+        name: 'HMRC',
+        coordinates: [-1.6113036886189427, 54.97419179801806],
+      },
+      {
+        name: 'St James Park',
+        coordinates: [-1.6204767255123336, 54.97470900180268],
+      },
+    ]
 
-  projects.forEach((project) => {
-    const marker = new mapboxgl.Marker({
-      color: '#2563eb', // Clean blue color
-      scale: 0.8,
+    // Add markers for each project
+    projects.forEach((project) => {
+      new mapboxgl.Marker({ color: '#2563eb' })
+        .setLngLat(project.coordinates)
+        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${project.name}</h3>`))
+        .addTo(map)
     })
-      .setLngLat([project.coordinates[1], project.coordinates[0]])
-      .setPopup(new mapboxgl.Popup().setHTML(`<h3>${project.name}</h3>`))
-      .addTo(map)
   })
-})
 
-// Watch for location changes to center map
-watch(
-  () => props.location,
-  (newLocation) => {
-    if (newLocation && map) {
-      map.flyTo({
-        center: [newLocation.lng, newLocation.lat],
-        zoom: 15,
-        duration: 1500, // Smooth animation
-        essential: true,
-      })
-    }
-  },
-)
+  // Watch for location changes
+  watch(
+    () => props.location,
+    (newLocation) => {
+      if (newLocation && map) {
+        map.flyTo({
+          center: [newLocation.lng, newLocation.lat],
+          zoom: 15,
+          duration: 1500,
+        })
+      }
+    },
+  )
+})
 </script>
 
-<style scoped>
+<style>
 .widget {
   background: white;
   border-radius: 0.5rem;
@@ -106,6 +99,11 @@ watch(
   color: var(--text-primary);
 }
 
+.widget-body {
+  padding: 0;
+  height: calc(100% - 70px);
+}
+
 .map-container {
   height: 100%;
   width: 100%;
@@ -114,19 +112,8 @@ watch(
   overflow: hidden;
 }
 
-:deep(.mapboxgl-popup) {
-  max-width: 200px;
-}
-
-:deep(.mapboxgl-popup-content) {
-  padding: 10px;
-  border-radius: 6px;
-}
-
-:deep(.mapboxgl-popup-content h3) {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
+/* Make sure Mapbox controls are visible */
+.mapboxgl-control-container {
+  display: block !important;
 }
 </style>
