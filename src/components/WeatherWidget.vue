@@ -59,16 +59,16 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <div v-if="showForecastModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>8-Day Forecast</h3>
-          <button class="close-btn" @click="showForecastM = false">&times;</button>
-        </div>
-        <div class="modal-content">
-          <!-- Forecast content will go here -->
-        </div>
+  <div v-if="showForecastModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>8-Day Forecast</h3>
+        <button class="close-btn" @click="showForecastM = false">&times;</button>
+      </div>
+      <div class="modal-content">
+        <!-- Forecast content will go here -->
       </div>
     </div>
   </div>
