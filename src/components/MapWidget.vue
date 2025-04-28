@@ -14,6 +14,7 @@
 // import  Vue features and Mapbox
 import { onMounted, watch, ref } from 'vue'
 import mapboxgl from 'mapbox-gl'
+import { API_KEYS } from '../config/keys'
 
 // Create a reference for the map container
 const mapContainer = ref(null)
@@ -28,14 +29,13 @@ const props = defineProps({
 
 // runs when component is mounted to the DOM
 onMounted(() => {
-  // Init Mapbox map
+  // InitMapbox map
   const map = new mapboxgl.Map({
     container: 'map', //  container div id
     style: 'mapbox://styles/mapbox/light-v10', // Map style to use
     center: [-1.6177, 54.9783], // Starting position
     zoom: 13, // Starting zoom level
-    accessToken:
-      'pk.eyJ1IjoiZG90dW4wOCIsImEiOiJjbTlzcnV0czUwMnpqMmtyM3R2dG85bXAwIn0.o8UJe0rZIbfocIVr6Q02jw',
+    accessToken: API_KEYS.MAPBOX_TOKEN,
   })
 
   // Add zoom in and out controls to the map

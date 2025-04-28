@@ -199,7 +199,7 @@ const handleProjectChange = () => {
   font-size: 0.875rem;
 }
 
-/* Add hover state for details */
+/* Add hover state  */
 .detail-item:hover {
   background-color: rgba(67, 89, 113, 0.04);
   border-radius: 0.375rem;

@@ -1,5 +1,5 @@
 import axios from 'axios'
-
+import { API_KEYS } from '../config/keys'
 const API_KEY = '17ed6739832a647507ffdaf131b2b4b5'
 const BASE_URL = 'http://api.openweathermap.org/data/2.5'
 
