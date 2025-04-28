@@ -1,84 +1,71 @@
 <template>
   <div class="widget">
+    <!-- Header Section -->
     <div class="widget-header">
       <div class="header-content">
         <h2 class="widget-title">Weather Conditions</h2>
         <div class="widget-actions">
           <button class="action-btn" @click="showForecastM = true">Forecast</button>
-          <button class="action-btn" @click="showHistory = true">History</button>
+          <button class="action-btn">History</button>
         </div>
       </div>
     </div>
+
+    <!-- Weather Content Section -->
     <div class="widget-body">
-      <!-- No Project Selected State -->
-      <div v-if="!location" class="no-location">
-        Please select a project to view weather conditions
-      </div>
-
-      <!-- Loading State -->
-      <div v-else-if="loading" class="loading">Loading weather data..</div>
-
-      <!-- Error State -->
-      <div v-else-if="error" class="error">
-        {{ error }}
-      </div>
-
-      <!-- Weather Data -->
-      <div v-else-if="weatherData" class="weather-info">
-        <div class="project-location">
-          {{ projectName }}
-        </div>
-
+      <div class="weather-info">
         <div class="temperature">{{ Math.round(weatherData.main.temp) }}°C</div>
-
         <div class="weather-details">
           <div class="stat-item">
             <span class="stat-label">Wind Speed</span>
-            <span class="stat-value" :class="{ 'text-danger': isWindSpeedHigh }">
-              {{ weatherData.wind.speed }} m/s
-            </span>
+            <span class="stat-value">{{ weatherData.wind.speed }} m/s</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Conditions</span>
-            <span class="stat-value">
-              {{ weatherData.weather[0].description }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Construction Alerts -->
-        <div v-if="constructionAlerts.length" class="alerts">
-          <div
-            v-for="(alert, index) in constructionAlerts"
-            :key="index"
-            class="alert"
-            :class="alert.type"
-          >
-            {{ alert.message }}
+            <span class="stat-value">{{ weatherData.weather[0].description }}</span>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div v-if="showForecastModal" class="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>8-Day Forecast</h3>
-        <button class="close-btn" @click="showForecastM = false">&times;</button>
-      </div>
-      <div class="modal-content">
-        <!-- Forecast content will go here -->
+    <!-- Forecast Modal -->
+    <div v-if="showForecastM" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>8-Day Forecast</h3>
+          <button class="close-btn" @click="showForecastM = false">&times;</button>
+        </div>
+        <div class="modal-content">
+          <div class="forecast-grid">
+            <div v-for="(day, index) in forecastData" :key="index" class="forecast-day">
+              <div class="day-header">{{ formatDate(day.dt) }}</div>
+              <div class="day-temp">{{ Math.round(day.temp.day) }}°C</div>
+              <div class="day-desc">{{ day.weather[0].description }}</div>
+              <div class="day-details">
+                <div class="detail">
+                  <span class="label">Wind</span>
+                  <span class="value">{{ day.wind_speed }}m/s</span>
+                </div>
+                <div class="detail">
+                  <span class="label">Rain</span>
+                  <span class="value">{{ day.rain ? day.rain : '0' }}mm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { getWeather } from '../services/weatherService'
+import { format } from 'date-fns'
 
 const showForecastM = ref(false)
+
 const showHistoryM = ref(false)
 const props = defineProps({
   location: {
@@ -95,7 +82,13 @@ const weatherData = ref(null)
 const loading = ref(false)
 const error = ref(null)
 
-// Weather checks remain the same...
+const forecastData = ref([])
+
+const formatDate = (timestamp) => {
+  return format(new Date(timestamp * 1000), 'EEE, MMM d')
+}
+
+// Weather checks
 const isWindSpeedHigh = computed(() => {
   if (!weatherData.value) return false
   const windSpeedMph = weatherData.value.wind.speed * 2.237
@@ -301,5 +294,58 @@ watch(
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* forcast style */
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.forecast-day {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.day-header {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.day-temp {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.day-desc {
+  color: #6e6b7b;
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+}
+
+.day-details {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.label {
+  color: #6e6b7b;
+}
+
+.value {
+  font-weight: 500;
+  color: var(--text-primary);
 }
 </style>
