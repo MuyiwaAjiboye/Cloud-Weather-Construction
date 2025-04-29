@@ -6,14 +6,15 @@
         <h2 class="widget-title">Weather Conditions</h2>
         <div class="widget-actions">
           <button class="action-btn" @click="showForecastM = true">Forecast</button>
-          <button class="action-btn">History</button>
+          <button class="action-btn" @click="showHistoryM = true">History</button>
         </div>
       </div>
     </div>
 
     <!-- Weather Content Section -->
     <div class="widget-body">
-      <div class="weather-info">
+      <div v-if="!weatherData" class="weather-info">Select a project to view weather data</div>
+      <div v-else class="weather-info">
         <div class="temperature">{{ Math.round(weatherData.main.temp) }}°C</div>
         <div class="weather-details">
           <div class="stat-item">
@@ -32,24 +33,73 @@
     <div v-if="showForecastM" class="modal-overlay">
       <div class="modal">
         <div class="modal-header">
-          <h3>8-Day Forecast</h3>
+          <h3>5-Day Forecast</h3>
           <button class="close-btn" @click="showForecastM = false">&times;</button>
         </div>
         <div class="modal-content">
-          <div class="forecast-grid">
+          <div v-if="forecastLoading" class="modal-message">Loading forecast...</div>
+          <div v-else-if="!forecastData.length" class="modal-message">
+            No forecast data available
+          </div>
+          <div v-else class="forecast-grid">
             <div v-for="(day, index) in forecastData" :key="index" class="forecast-day">
               <div class="day-header">{{ formatDate(day.dt) }}</div>
-              <div class="day-temp">{{ Math.round(day.temp.day) }}°C</div>
+              <div class="day-temp">{{ Math.round(day.main.temp) }}°C</div>
               <div class="day-desc">{{ day.weather[0].description }}</div>
               <div class="day-details">
                 <div class="detail">
                   <span class="label">Wind</span>
-                  <span class="value">{{ day.wind_speed }}m/s</span>
+                  <span class="value">{{ day.wind.speed }}m/s</span>
                 </div>
                 <div class="detail">
-                  <span class="label">Rain</span>
-                  <span class="value">{{ day.rain ? day.rain : '0' }}mm</span>
+                  <span class="label">Humidity</span>
+                  <span class="value">{{ day.main.humidity }}%</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Modal -->
+    <div v-if="showHistoryM" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Historical Weather</h3>
+          <button class="close-btn" @click="showHistoryM = false">&times;</button>
+        </div>
+        <div class="modal-content">
+          <div class="date-selector">
+            <label for="historyDate">Select Date:</label>
+            <input
+              type="date"
+              id="historyDate"
+              v-model="selectedDate"
+              :max="today"
+              @change="fetchHistoricalWeather"
+            />
+          </div>
+
+          <div v-if="historyLoading" class="modal-message">Loading historical data...</div>
+
+          <div v-else-if="!historyData" class="modal-message">
+            Select a date to view historical weather data
+          </div>
+
+          <div v-else class="history-data">
+            <div class="history-main">
+              <div class="day-temp">{{ Math.round(historyData.main.temp) }}°C</div>
+              <div class="day-desc">{{ historyData.weather[0].description }}</div>
+            </div>
+            <div class="day-details">
+              <div class="detail">
+                <span class="label">Wind Speed</span>
+                <span class="value">{{ historyData.wind.speed }}m/s</span>
+              </div>
+              <div class="detail">
+                <span class="label">Humidity</span>
+                <span class="value">{{ historyData.main.humidity }}%</span>
               </div>
             </div>
           </div>
@@ -63,10 +113,15 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { getWeather } from '../services/weatherService'
 import { format } from 'date-fns'
+import { API_KEYS } from '../config/keys'
 
-const showForecastM = ref(false)
+const showForecastM = ref(false) //for history modal
+const showHistoryM = ref(false) //storing historic data
+const historyData = ref(null)
+const historyLoading = ref(false)
+// for date select
+const selectedDate = ref(null)
 
-const showHistoryM = ref(false)
 const props = defineProps({
   location: {
     type: Object,
@@ -83,6 +138,7 @@ const loading = ref(false)
 const error = ref(null)
 
 const forecastData = ref([])
+const forecastLoading = ref(false)
 
 const formatDate = (timestamp) => {
   return format(new Date(timestamp * 1000), 'EEE, MMM d')
@@ -146,6 +202,86 @@ watch(
   },
   { immediate: true },
 )
+
+// Function to fetch 5-day forecast
+const fetchForecast = async (lat, lon) => {
+  forecastLoading.value = true
+  try {
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
+    )
+    const data = await response.json()
+
+    // Group forecast by day (we get data every 3 hours)
+    const dailyForecasts = data.list.reduce((days, forecast) => {
+      const date = new Date(forecast.dt * 1000).toDateString()
+      if (!days[date]) {
+        days[date] = forecast
+      }
+      return days
+    }, {})
+
+    // Convert to array
+    forecastData.value = Object.values(dailyForecasts)
+  } catch (error) {
+    console.error('Error fetching forecast:', error)
+  } finally {
+    forecastLoading.value = false
+  }
+}
+
+// Watch for modal opening
+watch(showForecastM, async (isOpen) => {
+  if (isOpen && weatherData.value) {
+    await fetchForecast(weatherData.value.coord.lat, weatherData.value.coord.lon)
+  }
+})
+
+//historic weather
+const fetchHistoricalWeather = async (lat, lon, date) => {
+  try {
+    const timestamp = Math.floor(date.getTime() / 1000)
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&dt=${timestamp}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
+    )
+    const data = await response.json()
+    historyData.value = data
+  } catch (error) {
+    console.error('Error fetching historical data:', error)
+  }
+}
+
+// Get today's date for max date in date picker
+const today = computed(() => {
+  const date = new Date()
+  return date.toISOString().split('T')[0]
+})
+
+// Add click handler to history button
+const handleHistoryClick = () => {
+  showHistoryM.value = true
+  // Default to 7 days ago
+  selectedDate.value = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+}
+
+// Fetch historical weather data
+const fetchHistoricalWeather = async () => {
+  if (!weatherData.value || !selectedDate.value) return
+
+  historyLoading.value = true
+  try {
+    const timestamp = Math.floor(new Date(selectedDate.value).getTime() / 1000)
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${weatherData.value.coord.lat}&lon=${weatherData.value.coord.lon}&dt=${timestamp}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
+    )
+    const data = await response.json()
+    historyData.value = data
+  } catch (error) {
+    console.error('Error fetching historical data:', error)
+  } finally {
+    historyLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -340,6 +476,12 @@ watch(
   font-size: 0.875rem;
 }
 
+.modal-message {
+  text-align: center;
+  padding: 2rem;
+  color: #6e6b7b;
+}
+
 .label {
   color: #6e6b7b;
 }
@@ -347,5 +489,44 @@ watch(
 .value {
   font-weight: 500;
   color: var(--text-primary);
+}
+
+/* for historical data content */
+.date-selector {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.date-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.date-selector input {
+  padding: 0.75rem;
+  border: 1px solid #e4e6ef;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  width: 200px;
+  color: var(--text-primary);
+}
+
+.history-data {
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.history-main {
+  margin-bottom: 1.5rem;
+}
+
+.modal-message {
+  text-align: center;
+  padding: 2rem;
+  color: #6e6b7b;
 }
 </style>
