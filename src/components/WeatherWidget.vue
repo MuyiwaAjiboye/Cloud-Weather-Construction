@@ -110,105 +110,78 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import { getWeather } from '../services/weatherService'
+import { ref, computed, watch } from 'vue' // Added watch
 import { format } from 'date-fns'
 import { API_KEYS } from '../config/keys'
 
-const showForecastM = ref(false) //for history modal
-const showHistoryM = ref(false) //storing historic data
-const historyData = ref(null)
-const historyLoading = ref(false)
-// for date select
-const selectedDate = ref(null)
-
+// Props
 const props = defineProps({
   location: {
     type: Object,
     default: null,
   },
-  projectName: {
-    type: String,
-    default: '',
-  },
 })
 
+// Basic refs
 const weatherData = ref(null)
 const loading = ref(false)
-const error = ref(null)
 
+// Forecast refs
+const showForecastM = ref(false)
 const forecastData = ref([])
 const forecastLoading = ref(false)
 
+// History refs
+const showHistoryM = ref(false)
+const historyData = ref(null)
+const historyLoading = ref(false)
+const selectedDate = ref('')
+
+// Get today's date for max date in date picker
+const today = computed(() => {
+  const date = new Date()
+  return date.toISOString().split('T')[0]
+})
+
+// Format date for display
 const formatDate = (timestamp) => {
   return format(new Date(timestamp * 1000), 'EEE, MMM d')
 }
 
-// Weather checks
-const isWindSpeedHigh = computed(() => {
-  if (!weatherData.value) return false
-  const windSpeedMph = weatherData.value.wind.speed * 2.237
-  return windSpeedMph > 20
-})
-
-const isHeavyRain = computed(() => {
-  if (!weatherData.value) return false
-  const rainId = weatherData.value.weather[0].id
-  return (rainId >= 502 && rainId <= 531) || rainId === 201 || rainId === 202
-})
-
-const constructionAlerts = computed(() => {
-  const alerts = []
-  if (isWindSpeedHigh.value) {
-    alerts.push({
-      type: 'warning',
-      message: 'Wind speed exceeds safe crane operation limit (20 mph)',
-    })
-  }
-  if (isHeavyRain.value) {
-    alerts.push({
-      type: 'warning',
-      message: 'Heavy rain may affect digger and dumper truck operations',
-    })
-  }
-  return alerts
-})
-
-const fetchWeatherData = async () => {
-  if (!props.location) return
-
-  loading.value = true
-  error.value = null
-
-  try {
-    const data = await getWeather(props.location.lat, props.location.lng)
-    weatherData.value = data
-  } catch (err) {
-    error.value = 'Failed to load weather data'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Watch for location changes
+// Watch for weather data changes
 watch(
   () => props.location,
-  () => {
-    if (props.location) {
-      fetchWeatherData()
-    } else {
-      weatherData.value = null
+  async (newLocation) => {
+    if (newLocation) {
+      await fetchWeatherData(newLocation)
     }
   },
   { immediate: true },
 )
 
-// Function to fetch 5-day forecast
-const fetchForecast = async (lat, lon) => {
+// Fetch weather data
+const fetchWeatherData = async (location) => {
+  loading.value = true
+  try {
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lng}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
+    )
+    weatherData.value = await response.json()
+  } catch (error) {
+    console.error('Error fetching weather:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Fetch forecast data
+const fetchForecast = async () => {
+  if (!weatherData.value) return
+
   forecastLoading.value = true
   try {
     const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${weatherData.value.coord.lat}&lon=${weatherData.value.coord.lon}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
     )
     const data = await response.json()
 
@@ -230,40 +203,6 @@ const fetchForecast = async (lat, lon) => {
   }
 }
 
-// Watch for modal opening
-watch(showForecastM, async (isOpen) => {
-  if (isOpen && weatherData.value) {
-    await fetchForecast(weatherData.value.coord.lat, weatherData.value.coord.lon)
-  }
-})
-
-//historic weather
-const fetchHistoricalWeather = async (lat, lon, date) => {
-  try {
-    const timestamp = Math.floor(date.getTime() / 1000)
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&dt=${timestamp}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
-    )
-    const data = await response.json()
-    historyData.value = data
-  } catch (error) {
-    console.error('Error fetching historical data:', error)
-  }
-}
-
-// Get today's date for max date in date picker
-const today = computed(() => {
-  const date = new Date()
-  return date.toISOString().split('T')[0]
-})
-
-// Add click handler to history button
-const handleHistoryClick = () => {
-  showHistoryM.value = true
-  // Default to 7 days ago
-  selectedDate.value = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-}
-
 // Fetch historical weather data
 const fetchHistoricalWeather = async () => {
   if (!weatherData.value || !selectedDate.value) return
@@ -282,6 +221,13 @@ const fetchHistoricalWeather = async () => {
     historyLoading.value = false
   }
 }
+
+// Watch for modal openings to fetch data
+watch(showForecastM, async (isOpen) => {
+  if (isOpen && weatherData.value) {
+    await fetchForecast()
+  }
+})
 </script>
 
 <style scoped>
