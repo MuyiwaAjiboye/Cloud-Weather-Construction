@@ -8,7 +8,6 @@
         </div>
         <div class="nav-menu">
           <router-link to="/" class="nav-item">Dashboard</router-link>
-          <router-link to="/projects" class="nav-item">Projects</router-link>
         </div>
       </div>
     </nav>

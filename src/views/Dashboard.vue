@@ -1,7 +1,5 @@
 <template>
   <div class="dashboard">
-    <h1 class="page-title">Weather Dashboard</h1>
-
     <div class="grid-wrapper">
       <div class="select-project-container">
         <SelectProject @project-selected="handleProjectSelect" />

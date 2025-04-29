@@ -3,7 +3,6 @@
     <div class="nav-brand">Weather Dashboard</div>
     <div class="nav-links">
       <router-link to="/" class="nav-link">Dashboard</router-link>
-      <router-link to="/projects" class="nav-link">Projects</router-link>
     </div>
   </nav>
 </template>
