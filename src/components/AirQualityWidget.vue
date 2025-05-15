@@ -4,8 +4,8 @@
       <h2 class="widget-title">Air Quality</h2>
     </div>
     <div class="widget-body">
-      <!-- No Project Selected -->
-      <div v-if="!location" class="air-quality-info">Select a project to view air quality</div>
+      <!-- when no project is Selected -->
+      <div v-if="!location" class="air-quality-info">Select a project to view the air quality</div>
 
       <!-- Loading -->
       <div v-else-if="loading" class="air-quality-info">Loading...</div>
@@ -23,7 +23,7 @@
           {{ airQualityText }}
         </div>
 
-        <!-- Status and Recommendation -->
+        <!-- status and recommendation part -->
         <div class="aqi-details">
           <div class="stat-item">
             <span class="stat-label">Status</span>
@@ -34,12 +34,13 @@
                 'text-danger': !isGoodAirQuality,
               }"
             >
+              //if else
               {{ isGoodAirQuality ? 'Safe for Operations' : 'Operation Not Advised' }}
             </span>
           </div>
         </div>
 
-        <!-- Recommendation Message -->
+        <!-- recommendationn message -->
         <div class="recommendation" v-if="recommendationMessage">
           {{ recommendationMessage }}
         </div>
@@ -60,7 +61,7 @@ const props = defineProps({
   },
 })
 
-// Data
+// initialize data
 const loading = ref(false)
 const airQualityData = ref(null)
 
@@ -80,7 +81,7 @@ const fetchAirQuality = async () => {
   }
 }
 
-// Convert AQI number to text
+// converting aqi number to text
 const airQualityText = computed(() => {
   if (!airQualityData.value) return 'Unknown'
 
@@ -95,22 +96,22 @@ const airQualityText = computed(() => {
   return levels[aqi] || 'Unknown'
 })
 
-// Check if air quality is good (1) or fair (2)
+// chhecking if air quality is good 1 or fair 2
 const isGoodAirQuality = computed(() => {
   if (!airQualityData.value) return false
   return airQualityData.value.main.aqi <= 2
 })
 
-// Get recommendation based on air quality
+// get recommendation depending on air quality
 const recommendationMessage = computed(() => {
-  if (!airQualityData.value) return ''
+  if (!airQualityData.value) return '' //nothing
 
   return isGoodAirQuality.value
     ? 'Safe to carry out work with earth moving equipment'
     : 'Earth moving equipment operations not recommended due to air quality'
 })
 
-// Watch for location changes and update data
+// here to watch for location changes and if there was a change then update the data
 watch(
   () => props.location,
   () => {

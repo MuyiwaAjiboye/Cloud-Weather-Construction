@@ -4,22 +4,22 @@
       <h2 class="widget-title">Project Locations</h2>
     </div>
     <div class="widget-body">
-      <!-- Map container for Vue to track -->
+      <!-- setting up map container for vue to track it -->
       <div id="map" ref="mapContainer" class="map-container"></div>
     </div>
   </div>
 </template>
 
 <script setup>
-// import  Vue features and Mapbox
+// importing some vue features and Mapbox
 import { onMounted, watch, ref } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import { API_KEYS } from '../config/keys'
 
-// Create a reference for the map container
+//  reference for the map container
 const mapContainer = ref(null)
 
-// Define props with type checking for location data
+// props with type checking for location data
 const props = defineProps({
   location: {
     type: Object,
@@ -33,17 +33,17 @@ onMounted(() => {
   const map = new mapboxgl.Map({
     container: 'map', //  container div id
     style: 'mapbox://styles/mapbox/light-v10', // Map style to use
-    center: [-1.6177, 54.9783], // Starting position
-    zoom: 13, // Starting zoom level
+    center: [-1.6177, 54.9783], // starting position
+    zoom: 13, // starting zoom level
     accessToken: API_KEYS.MAPBOX_TOKEN,
   })
 
-  // Add zoom in and out controls to the map
+  // add zoom in and out controls to the map
   map.addControl(new mapboxgl.NavigationControl())
 
-  // Wait for map to finish loading before adding markers
+  // waiting for map to load before adding markers
   map.on('load', () => {
-    // Array of project locations
+    // an array of project locations
     const projects = [
       {
         name: 'NESST',
@@ -65,23 +65,23 @@ onMounted(() => {
 
     // marker for each project location
     projects.forEach((project) => {
-      new mapboxgl.Marker({ color: '#2563eb' }) // blue marker
-        .setLngLat(project.coordinates) // Set marker position
-        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${project.name}</h3>`)) // Add popup with project name
+      new mapboxgl.Marker({ color: '#2563eb' }) // made the marker blue
+        .setLngLat(project.coordinates) // Set a marker position
+        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${project.name}</h3>`)) // adds a popup with project name
         .addTo(map) // Add marker to map
     })
   })
 
-  // Watch for changes in the location
+  // watches for changes in the location
   watch(
     () => props.location,
     (newLocation) => {
       if (newLocation && map) {
-        // Animate map to new location when selected
+        // cool animating of map to new location when selected
         map.flyTo({
           center: [newLocation.lng, newLocation.lat],
           zoom: 15,
-          duration: 1500, // Animation duration in milliseconds
+          duration: 1500, // i set the animation duration in milliseconds
         })
       }
     },

@@ -81,7 +81,7 @@
             />
           </div>
 
-          <div v-if="historyLoading" class="modal-message">Loading historical data...</div>
+          <div v-if="historyLoading" class="modal-message">loading histoy...</div>
 
           <div v-else-if="!historyData" class="modal-message">
             Select a date to view historical weather data
@@ -89,6 +89,7 @@
 
           <div v-else class="history-data">
             <div class="history-main">
+              <!-- ai helped with the math round function -->
               <div class="day-temp">{{ Math.round(historyData.main.temp) }}°C</div>
               <div class="day-desc">{{ historyData.weather[0].description }}</div>
             </div>
@@ -110,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue' // Added watch
+import { ref, computed, watch } from 'vue'
 import { format } from 'date-fns'
 import { API_KEYS } from '../config/keys'
 
@@ -122,7 +123,7 @@ const props = defineProps({
   },
 })
 
-// Basic refs
+//  refs
 const weatherData = ref(null)
 const loading = ref(false)
 
@@ -137,18 +138,19 @@ const historyData = ref(null)
 const historyLoading = ref(false)
 const selectedDate = ref('')
 
-// Get today's date for max date in date picker
+// getting todays date for date picker
+// Ai with the date.toISOString idea
 const today = computed(() => {
   const date = new Date()
   return date.toISOString().split('T')[0]
 })
 
-// Format date for display
+//  date for display
 const formatDate = (timestamp) => {
   return format(new Date(timestamp * 1000), 'EEE, MMM d')
 }
 
-// Watch for weather data changes
+// check for weather data changes
 watch(
   () => props.location,
   async (newLocation) => {
@@ -159,7 +161,7 @@ watch(
   { immediate: true },
 )
 
-// Fetch weather data
+// get weather data
 const fetchWeatherData = async (location) => {
   loading.value = true
   try {
@@ -169,12 +171,12 @@ const fetchWeatherData = async (location) => {
     weatherData.value = await response.json()
   } catch (error) {
     console.error('Error fetching weather:', error)
-  } finally {
+  } finally { //relearnt  "finally"
     loading.value = false
   }
 }
 
-// Fetch forecast data
+//  forecast data
 const fetchForecast = async () => {
   if (!weatherData.value) return
 
@@ -185,7 +187,7 @@ const fetchForecast = async () => {
     )
     const data = await response.json()
 
-    // Group forecast by day (we get data every 3 hours)
+    // grouping forecast by day ,get data every 3 hours
     const dailyForecasts = data.list.reduce((days, forecast) => {
       const date = new Date(forecast.dt * 1000).toDateString()
       if (!days[date]) {
@@ -194,7 +196,7 @@ const fetchForecast = async () => {
       return days
     }, {})
 
-    // Convert to array
+    // turn to array
     forecastData.value = Object.values(dailyForecasts)
   } catch (error) {
     console.error('Error fetching forecast:', error)
@@ -208,7 +210,7 @@ const fetchHistoricalWeather = async () => {
   if (!weatherData.value || !selectedDate.value) return
 
   historyLoading.value = true
-  try {
+  try { // used ai to help me understand how to go about the history loading (math.floor especially)
     const timestamp = Math.floor(new Date(selectedDate.value).getTime() / 1000)
     const response = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${weatherData.value.coord.lat}&lon=${weatherData.value.coord.lon}&dt=${timestamp}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,
@@ -222,7 +224,7 @@ const fetchHistoricalWeather = async () => {
   }
 }
 
-// Watch for modal openings to fetch data
+// looking out for modal opening to fetch data
 watch(showForecastM, async (isOpen) => {
   if (isOpen && weatherData.value) {
     await fetchForecast()
