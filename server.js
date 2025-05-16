@@ -1,13 +1,20 @@
-const express = require('express')
-const sql = require('mssql')
-const path = require('path')
+import express from 'express'
+import sql from 'mssql'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+import process from 'process'
+import fs from 'fs'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 const app = express()
 const PORT = process.env.PORT || 3000
 
-// Serve static files from the dist folder (after Vue build)
-app.use(express.static(path.join(__dirname, 'dist')))
+// serve static files from dist directory
+app.use(express.static(join(__dirname, 'dist')))
 
-// Database configuration
+// db configuration
 const dbConfig = {
   user: 'adminuser',
   password: 'dotun@12345',
@@ -24,9 +31,9 @@ app.get('/api/projects', async (req, res) => {
     await sql.connect(dbConfig)
     const result = await sql.query`SELECT * FROM Projects`
 
-    // Transform data to match your existing format
+    // transform thhe data format
     const projects = result.recordset.map((project) => {
-      // Extract lat and lng from Geolocation string
+      // extract lat and lng from Geolocation string
       const [lat, lng] = project.Geolocation.split(',').map((coord) => parseFloat(coord.trim()))
 
       return {
@@ -46,7 +53,7 @@ app.get('/api/projects', async (req, res) => {
   }
 })
 
-// API endpoint to get a single project by ID
+// API endpoint for single project
 app.get('/api/projects/:id', async (req, res) => {
   try {
     const id = req.params.id
@@ -76,9 +83,9 @@ app.get('/api/projects/:id', async (req, res) => {
   }
 })
 
-// Handle Vue Router - return index.html for any requests that don't match above
+// handle Vue Router - return index.html for any requests that don't match above
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'))
+  res.sendFile(join(__dirname, 'dist', 'index.html'))
 })
 
 app.listen(PORT, () => {
