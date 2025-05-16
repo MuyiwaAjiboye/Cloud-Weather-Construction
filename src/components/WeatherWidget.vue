@@ -33,7 +33,7 @@
     <div v-if="showForecastM" class="modal-overlay">
       <div class="modal">
         <div class="modal-header">
-          <h3>5-Day Forecast</h3>
+          <h3>Forecasts</h3>
           <button class="close-btn" @click="showForecastM = false">&times;</button>
         </div>
         <div class="modal-content">
@@ -171,7 +171,8 @@ const fetchWeatherData = async (location) => {
     weatherData.value = await response.json()
   } catch (error) {
     console.error('Error fetching weather:', error)
-  } finally { //relearnt  "finally"
+  } finally {
+    //relearnt  "finally"
     loading.value = false
   }
 }
@@ -210,7 +211,8 @@ const fetchHistoricalWeather = async () => {
   if (!weatherData.value || !selectedDate.value) return
 
   historyLoading.value = true
-  try { // used ai to help me understand how to go about the history loading (math.floor especially)
+  try {
+    // used ai to help me understand how to go about the history loading (math.floor especially)
     const timestamp = Math.floor(new Date(selectedDate.value).getTime() / 1000)
     const response = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${weatherData.value.coord.lat}&lon=${weatherData.value.coord.lon}&dt=${timestamp}&units=metric&appid=${API_KEYS.WEATHER_API_KEY}`,

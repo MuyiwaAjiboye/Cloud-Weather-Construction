@@ -34,8 +34,8 @@
                 'text-danger': !isGoodAirQuality,
               }"
             >
-              //if else
-              {{ isGoodAirQuality ? 'Safe for Operations' : 'Operation Not Advised' }}
+              <!-- if else -->
+              {{ isGoodAirQuality ? 'Safe for Operations' : 'Operation is Not Advised' }}
             </span>
           </div>
         </div>

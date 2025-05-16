@@ -1,9 +1,6 @@
 <template>
   <nav class="navigation">
     <div class="nav-brand">Weather Dashboard</div>
-    <div class="nav-links">
-      <router-link to="/" class="nav-link">Dashboard</router-link>
-    </div>
   </nav>
 </template>
 

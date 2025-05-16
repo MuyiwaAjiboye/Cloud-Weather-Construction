@@ -3,11 +3,7 @@
     <nav class="horizontal-nav">
       <div class="nav-content">
         <div class="nav-brand">
-          <!-- <img src="logo.svg" alt="Logo" class="nav-logo" /> -->
           <span class="brand-text">Weather Dashboard</span>
-        </div>
-        <div class="nav-menu">
-          <router-link to="/" class="nav-item">Dashboard</router-link>
         </div>
       </div>
     </nav>

@@ -51,70 +51,28 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import { ref, computed } from 'vue'
+import { useProjectsStore } from '../stores/projects'
+import { storeToRefs } from 'pinia'
 
-// Complete project data
-const projects = ref([
-  {
-    id: 1,
-    name: 'NESST',
-    description:
-      'A new university building with lab spaces, meeting rooms, breakout areas, kitchen areas and WC facilities.',
-    manager: 'Chelsea Dawson',
-    location: 'Northumbria University, Ellison Terrace, Newcastle upon Tyne, NE1 8ST',
-    coordinates: {
-      lat: 54.976414676146824,
-      lng: -1.6066366875533187,
-    },
-  },
-  {
-    id: 2,
-    name: 'CHASE',
-    description:
-      'A new university building with lab spaces, meeting rooms, breakout areas, kitchen areas and WC facilities.',
-    manager: 'Peter Duncan',
-    location: 'Northumbria University, Ellison Terrace, Newcastle upon Tyne, NE1 8ST',
-    coordinates: {
-      lat: 54.97919158255862,
-      lng: -1.6064863942439456,
-    },
-  },
-  {
-    id: 3,
-    name: 'HMRC',
-    description:
-      'An office space for a public sector client to include gym space, staff rooms with kitchen areas, toilet facilities, meeting rooms and breakout areas.',
-    manager: 'Dan Smith',
-    location: 'New Bridge Street, Newcastle upon Tyne, NE1 2SW',
-    coordinates: {
-      lat: 54.97419179801806,
-      lng: -1.6113036886189427,
-    },
-  },
-  {
-    id: 4,
-    name: 'St James Park',
-    description:
-      'An extension to the existing football stadium to include a clubhouse for coaching non-professional players and hosting events. To include a small field, an exhibition room, toilet facilities and a kitchen.',
-    manager: 'Chelsea Dawson',
-    location:
-      'Newcastle United Football Co Ltd, St. James Park, Strawberry Place, Newcastle upon Tyne, NE1 4ST',
-    coordinates: {
-      lat: 54.97470900180268,
-      lng: -1.6204767255123336,
-    },
-  },
-])
+export default {
+  name: 'SelectProject',
 
-const selectedProjectId = ref('')
-const selectedProject = computed(() => projects.value.find((p) => p.id === selectedProjectId.value))
+  setup() {
+    const projectsStore = useProjectsStore()
+    const { projects, loading, error } = storeToRefs(projectsStore)
 
-const emit = defineEmits(['project-selected'])
+    // Load the projects when component is created
+    projectsStore.fetchProjects()
 
-// denotes the project selected
-const handleProjectChange = () => {
-  emit('project-selected', selectedProject.value)
+    return {
+      projects,
+      loading,
+      error,
+      selectProject: projectsStore.fetchProjectById,
+    }
+  },
 }
 </script>
 
