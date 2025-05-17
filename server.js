@@ -8,30 +8,31 @@ import fs from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+// Init express app
 const app = express()
 const PORT = process.env.PORT || 3000
 
-// serve static files from dist directory
-app.use(express.static(join(__dirname, 'dist')))
-
-// db configuration
+// db config
 const dbConfig = {
-  user: 'adminuser',
-  password: 'dotun@12345',
-  server: 'construction-sql-main-db.database.windows.net',
-  database: 'constructionSiteDB',
+  user: process.env.DB_USER || 'adminuser',
+  password: process.env.DB_PASSWORD || 'dotun@12345',
+  server: process.env.DB_SERVER || 'construction-sql-main-db.database.windows.net',
+  database: process.env.DB_NAME || 'constructionSiteDB',
   options: {
     encrypt: true,
   },
 }
 
-// API endpoint to get all projects
+// get static files
+app.use(express.static(join(__dirname, 'dist')))
+
+// gget all the projects endpoint
 app.get('/api/projects', async (req, res) => {
   try {
     await sql.connect(dbConfig)
     const result = await sql.query`SELECT * FROM Projects`
 
-    // transform thhe data format
+    // transform the data format
     const projects = result.recordset.map((project) => {
       // extract lat and lng from Geolocation string
       const [lat, lng] = project.Geolocation.split(',').map((coord) => parseFloat(coord.trim()))
@@ -53,7 +54,7 @@ app.get('/api/projects', async (req, res) => {
   }
 })
 
-// API endpoint for single project
+// endpoint for a single project
 app.get('/api/projects/:id', async (req, res) => {
   try {
     const id = req.params.id
@@ -83,7 +84,7 @@ app.get('/api/projects/:id', async (req, res) => {
   }
 })
 
-// handle Vue Router - return index.html for any requests that don't match above
+// Handle Vue Router - return index.html for any requests that don't match above
 app.get('*', (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'))
 })
